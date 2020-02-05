@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,6 +25,10 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
 
     @Override
     public boolean AddItem(T t) {
+        Node<?, T> node = checkForExistence(t, getBucket(t));
+        if (node == null) {
+
+        }
         return false;
     }
 
@@ -35,15 +40,15 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
     @Override
     public boolean HasItem(T t) {
         int idx = getBucket(t);
-        return checkForExistence(t) != null;
+        return checkForExistence(t, idx) != null;
     }
 
-    private List<Node<?, T>> checkForExistence(T t) {
-        List<Node<?, T>> l = this.buckets
+    private Node<?, T> checkForExistence(T t, int idx) {
+
+        Node<?, T> node = this.buckets.get(idx)
                 .stream()
-                .flatMap(x->x.stream())
-                .filter(x->x.value.equals(t)).collect(Collectors.toList());
-        return l;
+                .filter(x->x.value.equals(t)).collect(onlyOneElement());
+        return node;
     }
 
     @Override
@@ -58,5 +63,20 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
 
     private int getBucket(T t) {
         return t.hashCode() % this.size();
+    }
+
+    public static <T> Collector<T, ?, T> onlyOneElement () {
+        return Collectors.collectingAndThen(
+                Collectors.toList(), list -> {
+                    if(list.size() != 1) {
+                        try {
+                            throw new IllegalAccessException();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    return list.get(0);
+                }
+        );
     }
 }
