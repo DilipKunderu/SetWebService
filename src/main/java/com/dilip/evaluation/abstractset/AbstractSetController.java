@@ -9,10 +9,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AbstractSetController {
     @Autowired
-    AbstractSetService abstractSetService;
+    AbstractSetService<String> abstractSetService;
 
     @RequestMapping(value = "/item/{item}", method = RequestMethod.GET)
     public boolean HasItem(@PathVariable("item") String item) {
         return abstractSetService.HasItem(item);
+    }
+
+    @RequestMapping(value = "/item/{item}", method = RequestMethod.POST)
+    public boolean AddItem(@PathVariable("item") String item) {
+        return abstractSetService.AddItem(item);
+    }
+
+    @RequestMapping(value = "/item/{item}", method = RequestMethod.DELETE)
+    public boolean DeleteItem(@PathVariable("item") String item) {
+        return abstractSetService.RemoveItem(item);
     }
 }

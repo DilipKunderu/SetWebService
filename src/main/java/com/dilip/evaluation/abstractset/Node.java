@@ -1,6 +1,6 @@
 package com.dilip.evaluation.abstractset;
 
-public class Node<K, V extends Comparable<V>> {
+public class Node<K extends Comparable<K>, V> {
     K key;
     V value;
     Node<K, V> next;
