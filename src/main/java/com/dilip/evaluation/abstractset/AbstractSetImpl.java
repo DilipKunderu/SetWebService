@@ -4,10 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
+import java.util.AbstractSet;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 @Component
 public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> implements ISet<T> {
@@ -15,32 +16,31 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
     private int size;
     private List<List<Node<T, ?>>> buckets;
 
-    private final int initialCapacity, threshold;
+    private final int initialCapacity;
     private final float loadFactor;
 
     @Autowired
-    public AbstractSetImpl (@Value("${spring.application.initialcapacity}") String size, @Value("${spring.application.loadfactor}") String loadFactor, @Value("${spring.application.threshold}") String threshold) {
+    public AbstractSetImpl (@Value("${spring.application.initialcapacity}") String size, @Value("${spring.application.loadfactor}") String loadFactor) {
         this.initialCapacity = Integer.parseInt(size);
         this.buckets = new ArrayList<>(this.initialCapacity);
         this.loadFactor = Float.parseFloat(loadFactor);
-        this.threshold = Integer.parseInt(threshold);
         this.size = 0;
         initializeBuckets();
     }
 
     private void initializeBuckets() {
         for (int i = 0; i < initialCapacity; i++) {
-            this.buckets.add(new ArrayList<>(threshold));
+            this.buckets.add(new LinkedList<>());
         }
     }
 
     @Override
     public boolean AddItem(T t) {
         int bucketIdx = getBucket(t);
-        int elemIdx = checkForExistence(t, bucketIdx);
+        Node<T, ?> node = checkForExistence(t, bucketIdx);
 
-        if (elemIdx == -1) {
-            Node<T, Object> node = new Node<>(t, DUMMY);
+        if (node == null) {
+            node = new Node<>(t, DUMMY);
             List<Node<T, ?>> l = this.buckets.get(bucketIdx);
             l.add(node);
             size++;
@@ -53,21 +53,19 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
     @Override
     public boolean RemoveItem(T t) {
         int bucketIdx = getBucket(t);
-//        Node<T, ?> node = checkForExistence(t, bucketIdx);
-        int elemIdx = checkForExistence(t, bucketIdx);
-        if (elemIdx != -1) {
-            removeFromBucketList(bucketIdx, elemIdx);
+        Node<T, ?> node = checkForExistence(t, bucketIdx);
+        if (node != null) {
+            removeFromBucketList(bucketIdx, node);
             size--;
             return true;
         }
         return false;
     }
 
-    private void removeFromBucketList(int bucketIdx, int elemIdx) {
-        List<Node<T, ?>> l = this.buckets.get(bucketIdx);
-        int lastIdx = l.size() - 1;
-        Collections.swap(l, elemIdx, lastIdx); //need to check if this is constant time or more
-        l.remove(lastIdx);
+    private void removeFromBucketList(int bucketIdx,Node<T, ?> node) {
+        LinkedList<Node<T, ?>> l = (LinkedList<Node<T, ?>>) this.buckets.get(bucketIdx);
+        l.remove(node);
+
     }
 
     @Override
@@ -77,23 +75,16 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
         }
 
         int bucketIdx = getBucket(t);
-        return checkForExistence(t, bucketIdx) != -1;
+        return checkForExistence(t, bucketIdx) != null;
     }
 
-    private int checkForExistence(T t, int idx) {
-        AtomicInteger pos = new AtomicInteger(-1);
-
-        //might use object later
-        T element = this.buckets.get(idx).stream()
-                .map(x -> x.key)
-                .peek(x -> pos.incrementAndGet())
-                .filter(t::equals)
+    private Node<T, ?> checkForExistence(T t, int idx) {
+       Node<T, ?> node = this.buckets.get(idx).stream()
+                .filter(x->x.key.equals(t))
                 .findFirst()
                 .orElse(null);
-//        Node<T, ?> node = this.buckets.get(idx)
-//                .stream()
-//                .filter(x->x.value.equals(t)).collect(onlyOneElement());
-        return pos.get();
+
+        return node;
     }
 
     @Override
@@ -111,19 +102,4 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
         int offset = this.buckets.size();
         return initialHash % offset;
     }
-
-//    public static <T> Collector<T, ?, T> onlyOneElement () {
-//        return Collectors.collectingAndThen(
-//                Collectors.toList(), list -> {
-//                    if(list.size() != 1) {
-//                        try {
-//                            throw new IllegalAccessException();
-//                        } catch (IllegalAccessException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                    return list.get(0);
-//                }
-//        );
-//    }
 }
