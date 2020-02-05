@@ -1,9 +1,9 @@
 package com.dilip.evaluation.abstractset;
 
-public interface ISet<String> {
-    boolean AddItem(String member);
+public interface ISet<Member> {
+    boolean AddItem(Member member);
 
-    boolean RemoveItem(String member);
+    boolean RemoveItem(Member member);
 
-    boolean HasItem(String member);
+    boolean HasItem(Member member);
 }
