@@ -6,4 +6,6 @@ public interface ISetService<T extends Comparable<T>> {
     boolean RemoveItem(T t);
 
     boolean HasItem(T t);
+
+    int size();
 }

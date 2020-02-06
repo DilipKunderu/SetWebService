@@ -14,6 +14,6 @@ public class ISetServiceConfig {
 
     @Bean
     public ISetService abstractSetServiceImpl () {
-        return new AbstractSetServiceImpl(initialCapacity, loadFactor);
+        return new AbstractSetServiceImpl(Integer.parseInt(initialCapacity), Double.parseDouble(loadFactor));
     }
 }

@@ -1,8 +1,6 @@
 package com.dilip.evaluation.abstractset;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -11,8 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Component
-public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> implements ISet<T> {
+public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet<T> implements ISetService<T> {
     private static final Object DUMMY = new Object();
 
     private final int initialCapacity;
@@ -24,12 +21,12 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
     private List<List<Node<T, ?>>> buckets;
 
     @Autowired
-    public AbstractSetImpl (@Value("${spring.application.initialcapacity}") String size, @Value("${spring.application.loadfactor}") String loadFactor) {
+    public AbstractSetServiceImpl(int initialCapacity, double loadFactor) {
         this.size = new AtomicInteger(0);
-        this.initialCapacity = Integer.parseInt(size);
+        this.initialCapacity = initialCapacity;
         this.buckets = new ArrayList<>(this.initialCapacity);
         initializeBuckets();
-        this.loadFactor = Double.parseDouble(loadFactor);
+        this.loadFactor = loadFactor;
         this.currentLoadFactor = computeCurrentLoadFactor();
     }
 
@@ -93,7 +90,7 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
 
     @Override
     public boolean HasItem(T t) {
-        if (this.size.equals(0)) {
+        if (this.size.get() == 0) {
             return false;
         }
 
