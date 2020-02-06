@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class AbstractSetImplTest {
+class ISetTest {
 
     @Test
     void addItem() {
@@ -16,9 +16,5 @@ class AbstractSetImplTest {
 
     @Test
     void hasItem() {
-    }
-
-    @Test
-    void size() {
     }
 }

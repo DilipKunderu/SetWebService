@@ -9,23 +9,30 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> implements ISet<T> {
     private static final Object DUMMY = new Object();
-    private int size;
-    private List<List<Node<T, ?>>> buckets;
 
     private final int initialCapacity;
-    private final float loadFactor;
+    private final double loadFactor, currentLoadFactor;
+
+    private final AtomicInteger size;
+    private List<List<Node<T, ?>>> buckets;
 
     @Autowired
     public AbstractSetImpl (@Value("${spring.application.initialcapacity}") String size, @Value("${spring.application.loadfactor}") String loadFactor) {
+        this.size = new AtomicInteger(0);
         this.initialCapacity = Integer.parseInt(size);
         this.buckets = new ArrayList<>(this.initialCapacity);
-        this.loadFactor = Float.parseFloat(loadFactor);
-        this.size = 0;
         initializeBuckets();
+        this.loadFactor = Double.parseDouble(loadFactor);
+        this.currentLoadFactor = computeCurrentLoadFactor();
+    }
+
+    private double computeCurrentLoadFactor() {
+        return (this.size.get() * 1.0)/this.buckets.size();
     }
 
     private void initializeBuckets() {
@@ -43,11 +50,26 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
             node = new Node<>(t, DUMMY);
             List<Node<T, ?>> l = this.buckets.get(bucketIdx);
             l.add(node);
-            size++;
+            this.size.incrementAndGet();
 
+            if (currentLoadFactor >= loadFactor) {
+                createMoreBuckets();
+            }
             return true;
         }
         return false;
+    }
+
+    private void createMoreBuckets() {
+        // Can actually use nearest prime to 2 * prevSize for better prevention of sparse population of the buckets
+        List<List<Node<T, ?>>> temp = this.buckets;
+
+        this.buckets = new ArrayList<>(2 * this.size.get());
+
+        temp.stream()
+                .flatMap(x->x.stream())
+                .map(y->y.key)
+        .forEach(t -> AddItem(t));
     }
 
     @Override
@@ -56,7 +78,7 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
         Node<T, ?> node = checkForExistence(t, bucketIdx);
         if (node != null) {
             removeFromBucketList(bucketIdx, node);
-            size--;
+            this.size.decrementAndGet();
             return true;
         }
         return false;
@@ -70,7 +92,7 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
 
     @Override
     public boolean HasItem(T t) {
-        if (this.size == 0) {
+        if (this.size.equals(0)) {
             return false;
         }
 
@@ -94,7 +116,7 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
 
     @Override
     public int size() {
-        return this.size;
+        return this.size.get();
     }
 
     private int getBucket(T t) {
