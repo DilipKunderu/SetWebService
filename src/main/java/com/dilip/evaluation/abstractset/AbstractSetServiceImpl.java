@@ -19,6 +19,8 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
     private final double loadFactor, currentLoadFactor;
 
     private final AtomicInteger size;
+
+    //Need to distribute this
     private List<List<Node<T, ?>>> buckets;
 
     @Autowired
@@ -60,7 +62,7 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
         return false;
     }
 
-    private void createMoreBuckets() {
+    protected void createMoreBuckets() {
         // Can actually use nearest prime to 2 * prevSize for better prevention of sparse population of the buckets
         List<List<Node<T, ?>>> temp = this.buckets;
 
@@ -87,7 +89,6 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
     private void removeFromBucketList(int bucketIdx,Node<T, ?> node) {
         LinkedList<Node<T, ?>> l = (LinkedList<Node<T, ?>>) this.buckets.get(bucketIdx);
         l.remove(node);
-
     }
 
     @Override
@@ -100,7 +101,7 @@ public class AbstractSetImpl<T extends Comparable<T>> extends AbstractSet<T> imp
         return checkForExistence(t, bucketIdx) != null;
     }
 
-    private Node<T, ?> checkForExistence(T t, int idx) {
+    protected Node<T, ?> checkForExistence(T t, int idx) {
        Node<T, ?> node = this.buckets.get(idx).stream()
                 .filter(x->x.key.equals(t))
                 .findFirst()
