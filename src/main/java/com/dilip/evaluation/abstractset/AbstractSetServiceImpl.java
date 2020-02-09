@@ -2,18 +2,17 @@ package com.dilip.evaluation.abstractset;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.AbstractSet;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet<T> implements ISetService<T> {
     private static final Object DUMMY = new Object();
+    private ExecutorService executorService;
 
     private final int initialCapacity;
-    private final double loadFactor, currentLoadFactor;
+    private final double loadFactor;
+    private double currentLoadFactor;
 
     private final AtomicInteger size;
 
@@ -21,17 +20,18 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
     private List<List<Node<T, ?>>> buckets;
 
     @Autowired
-    public AbstractSetServiceImpl(int initialCapacity, double loadFactor) {
+    AbstractSetServiceImpl(int initialCapacity, double loadFactor) {
         this.size = new AtomicInteger(0);
         this.initialCapacity = initialCapacity;
         this.buckets = new ArrayList<>(this.initialCapacity);
         initializeBuckets();
         this.loadFactor = loadFactor;
-        this.currentLoadFactor = computeCurrentLoadFactor();
+        this.currentLoadFactor = 0.0;
+        this.executorService = Executors.newFixedThreadPool(2);
     }
 
-    private double computeCurrentLoadFactor() {
-        return (this.size.get() * 1.0)/this.buckets.size();
+    private void computeCurrentLoadFactor() {
+        this.currentLoadFactor = (this.size.get() * 1.0)/this.buckets.size();
     }
 
     private void initializeBuckets() {
@@ -42,21 +42,31 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
 
     @Override
     public boolean AddItem(T t) {
-        int bucketIdx = getBucket(t);
-        Node<T, ?> node = checkForExistence(t, bucketIdx);
+        Callable<Boolean> task = () -> {
+            int bucketIdx = getBucket(t);
+            Node<T, ?> node = checkForExistence(t, bucketIdx);
 
-        if (node == null) {
-            node = new Node<>(t, DUMMY);
-            List<Node<T, ?>> l = this.buckets.get(bucketIdx);
-            l.add(node);
-            this.size.incrementAndGet();
+            if (node == null) {
+                node = new Node<>(t, DUMMY);
+                List<Node<T, ?>> l = this.buckets.get(bucketIdx);
+                l.add(node);
+                this.size.incrementAndGet();
+                computeCurrentLoadFactor();
 
-            if (currentLoadFactor >= loadFactor) {
-                createMoreBuckets();
+                if (currentLoadFactor >= loadFactor) {
+                    createMoreBuckets();
+                }
+                return true;
             }
-            return true;
+            return false;
+        };
+        Future<Boolean> future = this.executorService.submit(task);
+        try {
+            return future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     protected void createMoreBuckets() {
@@ -66,21 +76,31 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
         this.buckets = new ArrayList<>(2 * this.size.get());
 
         temp.stream()
-                .flatMap(x->x.stream())
+                .flatMap(Collection::stream)
                 .map(y->y.key)
-        .forEach(t -> AddItem(t));
+        .forEach(this::AddItem);
     }
 
     @Override
     public boolean RemoveItem(T t) {
-        int bucketIdx = getBucket(t);
-        Node<T, ?> node = checkForExistence(t, bucketIdx);
-        if (node != null) {
-            removeFromBucketList(bucketIdx, node);
-            this.size.decrementAndGet();
-            return true;
+        Callable<Boolean> task = () -> {
+            int bucketIdx = getBucket(t);
+            Node<T, ?> node = checkForExistence(t, bucketIdx);
+            if (node != null) {
+                removeFromBucketList(bucketIdx, node);
+                this.size.decrementAndGet();
+                return true;
+            }
+            return false;
+
+        };
+        Future<Boolean> future = this.executorService.submit(task);
+        try {
+            return future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     private void removeFromBucketList(int bucketIdx,Node<T, ?> node) {
@@ -90,12 +110,21 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
 
     @Override
     public boolean HasItem(T t) {
-        if (this.size.get() == 0) {
+        Callable<Boolean> task = () -> {
+            if (this.size.get() == 0) {
+                return false;
+            }
+
+            int bucketIdx = getBucket(t);
+            return checkForExistence(t, bucketIdx) != null;
+        };
+        Future<Boolean> future = this.executorService.submit(task);
+        try {
+            return future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
             return false;
         }
-
-        int bucketIdx = getBucket(t);
-        return checkForExistence(t, bucketIdx) != null;
     }
 
     protected Node<T, ?> checkForExistence(T t, int idx) {

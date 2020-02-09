@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 class ISetServiceTest {
-    ISetService<String> set;
+    private ISetService<String> set;
 
     @BeforeEach
     void setUp() {
