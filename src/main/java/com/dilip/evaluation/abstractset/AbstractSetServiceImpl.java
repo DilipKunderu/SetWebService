@@ -60,13 +60,7 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
             }
             return false;
         };
-        Future<Boolean> future = this.executorService.submit(task);
-        try {
-            return future.get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-            return false;
-        }
+        return executeCall(task);
     }
 
     protected void createMoreBuckets() {
@@ -94,13 +88,7 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
             return false;
 
         };
-        Future<Boolean> future = this.executorService.submit(task);
-        try {
-            return future.get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-            return false;
-        }
+        return executeCall(task);
     }
 
     private void removeFromBucketList(int bucketIdx,Node<T, ?> node) {
@@ -118,6 +106,10 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
             int bucketIdx = getBucket(t);
             return checkForExistence(t, bucketIdx) != null;
         };
+        return executeCall(task);
+    }
+
+    private boolean executeCall (Callable<Boolean> task) {
         Future<Boolean> future = this.executorService.submit(task);
         try {
             return future.get();
