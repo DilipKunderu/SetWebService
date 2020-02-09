@@ -13,7 +13,8 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
     private static final Object DUMMY = new Object();
 
     private final int initialCapacity;
-    private final double loadFactor, currentLoadFactor;
+    private final double loadFactor;
+    private double currentLoadFactor;
 
     private final AtomicInteger size;
 
@@ -27,11 +28,11 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
         this.buckets = new ArrayList<>(this.initialCapacity);
         initializeBuckets();
         this.loadFactor = loadFactor;
-        this.currentLoadFactor = computeCurrentLoadFactor();
+        this.currentLoadFactor = 0.0;
     }
 
-    private double computeCurrentLoadFactor() {
-        return (this.size.get() * 1.0)/this.buckets.size();
+    private void computeCurrentLoadFactor() {
+        this.currentLoadFactor = (this.size.get() * 1.0)/this.buckets.size();
     }
 
     private void initializeBuckets() {
@@ -51,6 +52,7 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
             l.add(node);
             this.size.incrementAndGet();
 
+            computeCurrentLoadFactor();
             if (currentLoadFactor >= loadFactor) {
                 createMoreBuckets();
             }
