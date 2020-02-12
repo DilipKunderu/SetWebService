@@ -26,7 +26,7 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
     AbstractSetServiceImpl(int initialCapacity, double loadFactor) {
         this.size = new AtomicInteger(0);
         this.initialCapacity = initialCapacity;
-        this.buckets = new ArrayList<>(this.initialCapacity);
+        this.buckets = Collections.synchronizedList(new ArrayList<>(this.initialCapacity));
         initializeBuckets();
         this.loadFactor = loadFactor;
         this.currentLoadFactor = 0.0;
@@ -66,7 +66,6 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
             }
             return false;
         };
-        logger.info("AddItemImpl called on: " + t.toString());
         return executeCall(task);
     }
 
@@ -75,7 +74,8 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
         // Can actually use nearest prime to 2 * prevSize for better prevention of sparse population of the buckets
         List<List<Node<T, ?>>> temp = this.buckets;
 
-        this.buckets = new ArrayList<>(2 * this.size.get());
+        this.buckets = Collections.synchronizedList(new ArrayList<>(2 * this.size.get()));
+        initializeBuckets();
 
         temp.stream()
                 .flatMap(Collection::stream)
@@ -96,7 +96,7 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
             }
             return false;
         };
-        logger.info("RemoveItemImpl called on: " + t.toString());
+
         return executeCall(task);
     }
 
@@ -115,7 +115,7 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
             int bucketIdx = getBucket(t);
             return checkForExistence(t, bucketIdx) != null;
         };
-        logger.info("HasItemImpl called on: " + t.toString());
+
         return executeCall(task);
     }
 

@@ -4,18 +4,25 @@ import io.gatling.http.Predef._
 import scala.concurrent.duration._
 
 object Add {
-  val add = exec(http("Add")
-    .post("/item/dilip"))
+
+  val feeder = csv("strings.csv").random
+  val add = feed(feeder).exec(http("Add")
+    .post("/item/${Namesu}"))
+    .pause(7)
 }
 
 object Has {
-  val has = exec(http("Has")
-  .get("/item/dilip"))
+  val feeder = csv("strings.csv").random
+  val has = feed(feeder).exec(http("Has")
+  .get("/item/${Namesu}"))
+    .pause(5)
 }
 
 object Delete {
-  val delete = exec(http("Delete")
-    .delete("/item/dilip"))
+  val feeder = csv("strings.csv").random
+  val delete = feed(feeder).exec(http("Delete")
+    .delete("/item/${Namesu}"))
+    .pause(6)
 }
 
 class SetSimulations extends Simulation {
@@ -29,7 +36,10 @@ class SetSimulations extends Simulation {
     .upgradeInsecureRequestsHeader("1")
     .userAgentHeader("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:68.0) Gecko/20100101 Firefox/68.0")
 
-  val scn = scenario("Crud_Sequence").exec(Has.has, Add.add, Has.has, Delete.delete, Has.has)
+  val users = scenario("Users").exec(Has.has, Add.add, Has.has)
+  val admins = scenario("Admins").exec(Has.has, Add.add, Has.has, Delete.delete, Has.has)
 
-  setUp(scn.inject(atOnceUsers(1)).protocols(httpProtocol))
+  setUp(
+    users.inject(rampUsers(10) during(10 seconds)),
+      admins.inject(rampUsers(2) during (10 seconds))).protocols(httpProtocol)
 }

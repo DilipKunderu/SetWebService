@@ -98,6 +98,7 @@
 							<disableCompiler>false</disableCompiler>
 							<simulationClass>SetSimulations</simulationClass>
 							<simulationsFolder>${project.basedir}/src/test/scala</simulationsFolder>
+							<resourcesFolder>${project.basedir}/src/test/resources</resourcesFolder>
 							<runDescription>This-is-the-run-description</runDescription>
 						</configuration>
 					</execution>
