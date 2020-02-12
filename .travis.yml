@@ -1,6 +1,5 @@
 language: java
 install: true
 script:
-  - mvn spring-boot:start
+  - mvn spring-boot:run
   - mvn gatling:test
-  - mvn spring-boot:stop
