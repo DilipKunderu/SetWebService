@@ -13,7 +13,8 @@ class ISetServiceTest {
     void setUp() {
         int initialCapacity = 19;
         double loadFactor = 0.75;
-        set = new AbstractSetServiceImpl<>(initialCapacity, loadFactor);
+        int numThreads = 2;
+        set = new AbstractSetServiceImpl<>(initialCapacity, loadFactor, numThreads);
     }
 
     @Test

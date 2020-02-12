@@ -12,8 +12,11 @@ public class ISetServiceConfig {
     @Value("${spring.application.loadfactor}")
     private String loadFactor;
 
+    @Value("${spring.application.numThreads}")
+    private String numThreads;
+
     @Bean
     public ISetService abstractSetServiceImpl () {
-        return new AbstractSetServiceImpl(Integer.parseInt(initialCapacity), Double.parseDouble(loadFactor));
+        return new AbstractSetServiceImpl(Integer.parseInt(initialCapacity), Double.parseDouble(loadFactor),Integer.parseInt(numThreads));
     }
 }

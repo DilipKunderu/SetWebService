@@ -40,6 +40,6 @@ class SetSimulations extends Simulation {
   val admins = scenario("Admins").exec(Has.has, Add.add, Has.has, Delete.delete, Has.has)
 
   setUp(
-    users.inject(rampUsers(10) during(10 seconds)),
-      admins.inject(rampUsers(2) during (10 seconds))).protocols(httpProtocol)
+    users.inject(rampUsers(10000) during(10 seconds)),
+      admins.inject(rampUsers(100) during (10 seconds))).protocols(httpProtocol)
 }

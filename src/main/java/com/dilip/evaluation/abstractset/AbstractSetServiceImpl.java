@@ -23,14 +23,14 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
     private List<List<Node<T, ?>>> buckets;
 
     @Autowired
-    AbstractSetServiceImpl(int initialCapacity, double loadFactor) {
+    AbstractSetServiceImpl(int initialCapacity, double loadFactor, int numThreads) {
         this.size = new AtomicInteger(0);
         this.initialCapacity = initialCapacity;
         this.buckets = Collections.synchronizedList(new ArrayList<>(this.initialCapacity));
         initializeBuckets();
         this.loadFactor = loadFactor;
         this.currentLoadFactor = 0.0;
-        this.executorService = Executors.newFixedThreadPool(2);
+        this.executorService = Executors.newFixedThreadPool(numThreads);
         logger.info("Set initialized");
     }
 
