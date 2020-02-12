@@ -1,2 +1,4 @@
 language: java
-script: mvn spring-boot:run gatling:test
+script:
+  - mvn spring-boot:run
+  - mvn gatling:test
