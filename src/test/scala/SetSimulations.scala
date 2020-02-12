@@ -10,11 +10,11 @@ object Add {
 
 object Has {
   val has = exec(http("Has")
-  .post("/item/dilip"))
+  .get("/item/dilip"))
 }
 
 object Delete {
-  val delete = exec(http("Has")
+  val delete = exec(http("Delete")
     .delete("/item/dilip"))
 }
 
@@ -29,8 +29,7 @@ class SetSimulations extends Simulation {
     .upgradeInsecureRequestsHeader("1")
     .userAgentHeader("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:68.0) Gecko/20100101 Firefox/68.0")
 
-  val scn = scenario("Crud_Sequence").exec(Has.has,
-    pause(60000), Add.add)
+  val scn = scenario("Crud_Sequence").exec(Has.has, Add.add, Has.has, Delete.delete, Has.has)
 
   setUp(scn.inject(atOnceUsers(1)).protocols(httpProtocol))
 }

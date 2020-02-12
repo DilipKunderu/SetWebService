@@ -1,5 +1,7 @@
 package com.dilip.evaluation.abstractset;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -7,6 +9,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet<T> implements ISetService<T> {
+    Logger logger = LoggerFactory.getLogger(AbstractSetServiceImpl.class);
     private static final Object DUMMY = new Object();
     private ExecutorService executorService;
 
@@ -28,6 +31,7 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
         this.loadFactor = loadFactor;
         this.currentLoadFactor = 0.0;
         this.executorService = Executors.newFixedThreadPool(2);
+        logger.info("Set initialized");
     }
 
     private void computeCurrentLoadFactor() {
@@ -38,10 +42,12 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
         for (int i = 0; i < initialCapacity; i++) {
             this.buckets.add(new LinkedList<>());
         }
+        logger.info("buckets created");
     }
 
     @Override
     public boolean AddItem(T t) {
+
         Callable<Boolean> task = () -> {
             int bucketIdx = getBucket(t);
             Node<T, ?> node = checkForExistence(t, bucketIdx);
@@ -60,10 +66,12 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
             }
             return false;
         };
+        logger.info("AddItemImpl called on: " + t.toString());
         return executeCall(task);
     }
 
     protected void createMoreBuckets() {
+        logger.info("Expansion Started");
         // Can actually use nearest prime to 2 * prevSize for better prevention of sparse population of the buckets
         List<List<Node<T, ?>>> temp = this.buckets;
 
@@ -73,6 +81,7 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
                 .flatMap(Collection::stream)
                 .map(y->y.key)
         .forEach(this::AddItem);
+        logger.info("Expansion completed");
     }
 
     @Override
@@ -86,8 +95,8 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
                 return true;
             }
             return false;
-
         };
+        logger.info("RemoveItemImpl called on: " + t.toString());
         return executeCall(task);
     }
 
@@ -106,6 +115,7 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
             int bucketIdx = getBucket(t);
             return checkForExistence(t, bucketIdx) != null;
         };
+        logger.info("HasItemImpl called on: " + t.toString());
         return executeCall(task);
     }
 
@@ -114,7 +124,7 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
         try {
             return future.get();
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            logger.warn(e.getMessage().concat(" in executeCall method"));
             return false;
         }
     }
