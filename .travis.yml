@@ -5,7 +5,7 @@ script:
 
 before_deploy:
   - cp ./target/abstractset-0.0.1-SNAPSHOT.war ./
-  - zip -r temp.zip appspec.yml runas.sh abstractset-0.0.1-SNAPSHOT.war || true
+  - zip -r temp.zip appspec.yml runapp.sh abstractset-0.0.1-SNAPSHOT.war || true
   - mkdir -p "uploadDir"
   - mv temp.zip uploadDir/temp.zip || true
 
