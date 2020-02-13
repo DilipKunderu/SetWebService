@@ -1,14 +1,15 @@
 language: java
 
-script: mvn clean install
+script:
+  mvn clean install
 
 deploy:
   - provider: s3
     access_key_id: $AWS_ACCESS_KEY
     secret_access_key: $AWS_SECRET_KEY
-    local_dir: dpl_cd_upload
+    local_dir: /home/travis/build/DilipKunderu/SetWebService/target
     skip_cleanup: true
-    on: &1
+    on: &2
       repo: DilipKunderu/SetWebService
     bucket: war-bucket
     region: us-west-1
@@ -21,5 +22,5 @@ deploy:
     application: set-impl
     deployment_group: IntuitDeploymentGroup
     region: us-west-1
-    on: *1
+    on: *2
     wait-until-deployed: true
