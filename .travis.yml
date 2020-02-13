@@ -3,6 +3,11 @@ language: java
 script:
   mvn clean install
 
+before_deploy:
+  - zip -r temp.zip abstractset-0.0.1-SNAPSHOT.war appspec.yml runas.sh || true
+  - mkdir -p "uploadDir"
+  - mv temp.zip uploadDir/temp.zip || true
+
 deploy:
   - provider: s3
     access_key_id: $AWS_ACCESS_KEY
