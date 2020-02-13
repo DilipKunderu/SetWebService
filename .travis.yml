@@ -18,7 +18,7 @@ deploy:
     secret_access_key: $AWS_SECRET_KEY
     bucket: war-bucket
     key: abstractset-0.0.1-SNAPSHOT.war
-    bundle_type: war
+    bundle_type: zip
     application: set-impl
     deployment_group: IntuitDeploymentGroup
     region: us-west-1
