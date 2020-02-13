@@ -1,12 +1,17 @@
 language: java
 
+jdk:
+  - oraclejdk8
+
+script: mvn clean install
+
 deploy:
   - provider: s3
     access_key_id: $AWS_ACCESS_KEY
     secret_access_key: $AWS_SECRET_KEY
     local_dir: dpl_cd_upload
     skip_cleanup: true
-    on: &2
+    on: &1
       repo: DilipKunderu/SetWebService
     bucket: war-bucket
     region: us-west-1
@@ -19,9 +24,5 @@ deploy:
     application: set-impl
     deployment_group: IntuitDeploymentGroup
     region: us-west-1
-    on: *2
-
-    script:
-      - zip -r latest *
-      - mkdir -p dpl_cd_upload
-      - mv latest.zip dpl_cd_upload/latest.zip
+    on: *1
+    wait-until-deployed: true
