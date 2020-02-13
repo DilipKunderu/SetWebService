@@ -17,8 +17,8 @@ deploy:
     access_key_id: $AWS_ACCESS_KEY
     secret_access_key: $AWS_SECRET_KEY
     bucket: war-bucket
-    key: latest.zip
-    bundle_type: zip
+    key: abstractset-0.0.1-SNAPSHOT.war
+    bundle_type: war
     application: set-impl
     deployment_group: IntuitDeploymentGroup
     region: us-west-1
