@@ -8,5 +8,5 @@ files:
 
 hooks:
   ApplicationStart:
-    - location: runapp.sh
+    - location: /home/ubuntu/runapp.sh
       runas: ubuntu
