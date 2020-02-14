@@ -19,7 +19,7 @@ public class AbstractSetServiceImpl<T extends Comparable<T>> extends AbstractSet
 
     private final AtomicInteger size;
 
-    //Need to distribute this
+    //Part of the bucket
     private List<List<Node<T, ?>>> buckets;
 
     @Autowired
